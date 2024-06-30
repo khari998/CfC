@@ -76,6 +76,8 @@ class CfcCell(nn.Module):
             backbone_activation = nn.GELU
         elif self.hparams["backbone_activation"] == "lecun":
             backbone_activation = LeCun
+        elif self.hparams["backbone_activation"] == "aptx":
+            backbone_activation = APTx
         else:
             raise ValueError("Unknown activation")
         layer_list = [
@@ -143,7 +145,6 @@ class CfcCell(nn.Module):
             else:
                 new_hidden = ff1 * (1.0 - t_interp) + t_interp * ff2
         return new_hidden
-
 
 
 class Cfc(nn.Module):
@@ -351,7 +352,6 @@ class LTCCell(nn.Module):
             init_value=torch.zeros((self.sensory_size,)),
         )
 
-
     def _sigmoid(self, v_pre, mu, sigma):
         v_pre = torch.unsqueeze(v_pre, -1)  # For broadcasting
         mues = v_pre - mu
@@ -432,3 +432,18 @@ class LTCCell(nn.Module):
         # outputs = self._map_outputs(next_state)
 
         return next_state
+
+
+# APTx improved Mish activation
+# https://arxiv.org/abs/2209.06119
+
+
+class APTx(nn.Module):
+    def __init__(self, alpha=1.0, beta=1.0, gamma=0.5):
+        super(APTx, self).__init__()
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+
+    def forward(self, x):
+        return (self.alpha + torch.tanh(self.beta * x)) * self.gamma * x
