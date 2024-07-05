@@ -9,6 +9,14 @@ def lecun_tanh(x):
     return 1.7159 * tf.nn.tanh(0.666 * x)
 
 
+# APTx improved Mish activation
+# https://arxiv.org/abs/2209.06119
+
+
+def aptx(x, alpha=1.0, beta=1.0, gamma=0.5):
+    return (alpha + tf.math.tanh(beta * x)) * gamma * x
+
+
 class CfcCell(tf.keras.layers.Layer):
     def __init__(self, units, hparams, **kwargs):
         super(CfcCell, self).__init__(**kwargs)
@@ -36,6 +44,8 @@ class CfcCell(tf.keras.layers.Layer):
             backbone_activation = lecun_tanh
         elif self.hparams.get("backbone_activation") == "softplus":
             backbone_activation = tf.nn.softplus
+        elif self.hparams.get("backbone_activation") == "aptx":
+            backbone_activation = aptx
         else:
             raise ValueError("Unknown backbone activation")
 
